@@ -1,0 +1,35 @@
+{
+  "name": "en-masse",
+  "version": "0.0.1",
+  "scripts": {
+    "test": "vows --spec test/*.coffee"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/notatestuser/pillion-en-masse.git"
+  },
+  "keywords": [
+    "rpc",
+    "named",
+    "stream",
+    "registry",
+    "distributed"
+  ],
+  "engines": {
+    "node": "~0.9.12 || ~0.10.0"
+  },
+  "author": {
+    "name": "Luke Plaster",
+    "email": "notatestuser@gmail.com",
+    "url": "http://lukep.org/"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://lp.mit-license.org/"
+    }
+  ],
+  "dependencies": {
+    "node-networkip": ">= 0.0.x"
+  }
+}
