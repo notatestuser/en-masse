@@ -30,6 +30,12 @@
     }
   ],
   "dependencies": {
-    "node-networkip": ">= 0.0.x"
+    "redis": "~0.8.3",
+    "regexp-quote": "0.0.x",
+    "node-networkip": "0.0.x"
+  },
+  "devDependencies": {
+    "coffee-script": "~1.6.2",
+    "vows": "~0.7.0"
   }
 }
