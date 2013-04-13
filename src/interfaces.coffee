@@ -7,9 +7,27 @@ class Base
     # all we can really assume is that we're not already listening
     @listening = no
 
+  ###* Make an identifier hash for the current host - this is what we register ###
+  getHostIdentifier: (proto, nickname, callback) ->
+    callbackFn = (err) =>
+      callback? err,
+        name:  nickname
+        host:  @host
+        port:  @port
+        proto: proto
+    if @host
+      return callbackFn()
+    # attempt to find this host's IPv4 address; other protocols may do it their own way
+    getNetworkIPs (err, _ips = []) =>
+      return callback(err) if err
+      @host = _ips[0]
+      callbackFn err
+
 class Tcp extends Base
+  @PROTO_NAME = 'tcp'
+
   ###* TCP binds to a port on a host, so these are provided ###
-  constructor: (@port = 3000, @host) ->
+  constructor: (@port = 3000, @host, @options={}) ->
     super()
 
   ###* Connect to the client associated with a given identifier ###
@@ -18,6 +36,8 @@ class Tcp extends Base
       host: identifier.host
       port: identifier.port
     , ->
+      # disable Nagle's algo
+      client.setNoDelay @options.noDelay or yes
       callback? null, client
 
   ###* Listen for connections as a server on the configured port ###
@@ -27,20 +47,19 @@ class Tcp extends Base
     server.listen @port, =>
       @listening = yes
 
-  ###* Make an identifier hash for the current host - this is what we register ###
   getHostIdentifier: (nickname, callback) ->
-    callbackFn = (err) =>
-      callback? err,
-        name: nickname
-        host: @host
-        port: @port
-    if @host
-      return callbackFn()
-    # attempt to find this host's network IP
-    getNetworkIPs (err, _ips = []) =>
-      return callback(err) if err
-      @host = _ips[0]
-      callbackFn err
+    super Tcp.PROTO_NAME, nickname, callback
 
-module.exports.BaseInterface = Base
-module.exports.TcpInterface  = Tcp
+# ----------
+
+exports = module.exports
+
+exports.getByProtoName = (name) ->
+  if name is Tcp.PROTO_NAME
+    return Tcp
+  throw 'Unknown protocol'
+
+exports.BaseInterface = Base
+exports.TcpInterface  = Tcp
+
+# ----------
