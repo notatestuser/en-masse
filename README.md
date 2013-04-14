@@ -90,6 +90,21 @@ We can cater for your needs. Stream wrappers merely serve to take in
 a stream (initially a socket client) and output another duplex stream. You could do plenty
 of things instead like transformations, parsing, simulated latency, etc.
 
+Neat uses
+---------
+Have you been using configuration files to target your application at a set of services that
+varies depending upon which environment it's running in? Try this!
+
+```js
+var sidecar = require('sidecar'),
+    ...;
+
+var net = new sidecar('my-server-app');
+net.setPeerNamespace(process.env.NODE_ENV || 'dev');
+
+net.to('db-server-1') // ...use your stream...
+```
+
 The future
 ------------
 Please feel free to contribute to any extent.
@@ -102,6 +117,8 @@ Please feel free to contribute to any extent.
       namespace://*/method
 * Pillion extensions for method/service discovery
 * Proxied objects
+* Support for invocation of local methods (we currently exclude the local host from lists of destination peers)
+* Debug mode and logging
 
 The MIT License (MIT)
 ---------------------
