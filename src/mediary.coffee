@@ -41,7 +41,7 @@ class Mediary extends EventEmitter
 
     # ask the @registry to lookup the given pattern and invoke enactorFn on the resultant host set
     # it doesn't strictly matter if lookup completes before publish because we shouldn't be making streams to ourselves
-    @registry.lookup pattern, [@nickname], enactorFn
+    @registry.each pattern, [@nickname], enactorFn
 
     # get our own identifier so that we can publish it
     @interface.getHostIdentifier @nickname, captureError(callback, (err, _hostIdentifier) =>
@@ -66,7 +66,7 @@ class Mediary extends EventEmitter
     # when a client joins, we'll want to reinstate all persisted callbacks
     @registry.on 'join', (_newIdentifier) =>
       @persisted.forEach (_persisted) =>
-        @registry.lookup _persisted[0], [@nickname], (err, _matchedIdentifier={}) =>
+        @registry.each _persisted[0], [@nickname], (err, _matchedIdentifier={}) =>
           if _matchedIdentifier.name is _newIdentifier.name
             _persisted[1](err, _matchedIdentifier)
       @emit.apply @, arguments

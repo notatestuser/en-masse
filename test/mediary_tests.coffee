@@ -10,7 +10,7 @@ getMockedRegistry = ->
     published: {} # yep, it's a hash. - one-to-one mappings only
     publish: (identifier) ->
       registry.published[identifier.name or identifier] = identifier
-    lookup: (nickname, exclusions, callback) ->
+    each: (nickname, exclusions, callback) ->
       # we don't have to handle patterns here - let's just do a direct match
       match = registry.published[nickname]
       return callback? null, match if match

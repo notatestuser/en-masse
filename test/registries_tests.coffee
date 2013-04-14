@@ -12,12 +12,12 @@ makeIdentifier = (peerName) ->
   post: 1337
 
 mocks =
-  identifier1: makeIdentifier 'peer-1'
-  identifier2: makeIdentifier 'peer-2'
-  quad1:       makeIdentifier 'quad-1'
-  quad2:       makeIdentifier 'quad-2'
-  quad3:       makeIdentifier 'quad-3'
-  quad4:       makeIdentifier 'quad-4'
+  identifier1: makeIdentifier('peer-1')
+  identifier2: makeIdentifier('peer-2')
+  quad1:       makeIdentifier('quad-1')
+  quad2:       makeIdentifier('quad-2')
+  quad3:       makeIdentifier('quad-3')
+  quad4:       makeIdentifier('quad-4')
 
 ### Tests ###
 
@@ -28,7 +28,7 @@ vows
     "a single RedisRegistry":
       topic: ->
         namespace = "test-lone-#{new Date().getTime()}"
-        new RedisRegistry(null, null, namespace)
+        new RedisRegistry(null, null, namespace, ignoreProcessExit: yes)
 
       "has appended a colon to the end of the given namespace": (registry) ->
         namespace = registry.namespace
@@ -48,9 +48,9 @@ vows
             assert.ok not err
             assert.deepEqual res, mocks.identifier1
 
-        "and the server can be found through a call to lookup()":
+        "and the server can be found through a call to each()":
           topic: (res, registry) ->
-            registry.lookup 'peer-?', @callback
+            registry.each 'peer-?', @callback
             return
 
           "then our identifier is passed through to our callback": (err, res) ->
@@ -66,19 +66,35 @@ vows
             registry.publish.bind registry, mocks.quad4, pexpire: 1000
           ], @callback
 
-        "and a lookup() is performed with a pattern and exclusions":
+        "and a each() is performed with a pattern and exclusions":
           topic: (registries) ->
-            registries[0].lookup 'quad*', ['quad-1', 'quad-2', 'quad-4'], @callback
+            registries[0].each 'quad*', ['quad-1', 'quad-2', 'quad-4'], @callback
             return
 
           "then quad-3's identifier should have been received": (identifier) ->
             assert.deepEqual identifier, mocks.quad3
 
+        "there should be keys in the published hash for each identifier":
+          topic: (registries) ->
+            ns   = registries[0].namespace
+            keys = Object.keys published = registries[0].published
+            for idx in [1..4]
+              identifier = mocks["quad#{idx}"]
+              assert.ok (key = ns + identifier.name) in keys
+              assert.equal published[key], identifier
+            registries[0].unpublish mocks.quad4.name, @callback
+            return
+
+          "and when a peer is unpublished":
+            "the key should no longer be present in the published hash": (registry) ->
+              ns = registry.namespace
+              assert.ok not registry.published[ns + mocks.quad4]?
+
     "multiple RedisRegistries":
       topic: ->
         namespace = "test-duo-#{new Date().getTime()}"
-        [ new RedisRegistry(null, null, namespace),
-          new RedisRegistry(null, null, namespace) ]
+        [ new RedisRegistry(null, null, namespace, ignoreProcessExit: yes),
+          new RedisRegistry(null, null, namespace, ignoreProcessExit: yes) ]
 
       "when publish() is called on the second client":
         topic: (registries) ->
@@ -90,13 +106,13 @@ vows
         "the first client receives a 'join' event with a valid identifier": (identifier) ->
           assert.deepEqual identifier, mocks.identifier2
 
-        "and a lookup() is performed with a pattern and no exclusions":
+        "and a each() is performed with a pattern and no exclusions":
           topic: (identifier, registries) ->
-            registries[0].lookup 'peer-?', @callback
+            registries[0].each 'peer-?', @callback
             return
 
           "then the other client's identifier should have been received": (identifier) ->
             assert.deepEqual identifier, mocks.identifier2
 
-  ).export(module)
 
+  ).export(module)
