@@ -1,4 +1,4 @@
-sidecar (WIP)
+sidecar (WIP) [![Build Status](https://travis-ci.org/notatestuser/sidecar.png?branch=master)](https://travis-ci.org/notatestuser/sidecar)
 =============
 
 Get [Duplex](http://nodejs.org/api/stream.html#stream_class_stream_duplex) streams to named peers in your network without having to worry
