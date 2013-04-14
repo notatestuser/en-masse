@@ -1,7 +1,7 @@
-vows    = require('vows')
-assert  = require('assert')
+vows    = require 'vows'
+assert  = require 'assert'
 
-Mediary = require('../lib/mediary')
+Mediary = require '../src/mediary'
 
 ### Mocks ###
 
@@ -10,11 +10,12 @@ getMockedRegistry = ->
     published: {} # yep, it's a hash. - one-to-one mappings only
     publish: (identifier) ->
       registry.published[identifier.name or identifier] = identifier
-    lookup: (nickname, callback) ->
+    lookup: (nickname, exclusions, callback) ->
       # we don't have to handle patterns here - let's just do a direct match
       match = registry.published[nickname]
       return callback? null, match if match
       callback 'not found'
+    on: ->
 
 getMockedInterface = ->
   return iface =

@@ -1,43 +1,84 @@
-redis        = require 'redis'
-RegExp.quote = require 'regexp-quote'
+redis          = require 'redis'
+{EventEmitter} = require 'events'
+RegExp.quote   = require 'regexp-quote'
 
 ###* The base class is reserved for transparent caching in the future ###
-class Base
-  constructor: ->
+class Base extends EventEmitter
+  @DEFAULT_NAMESPACE: 'sidecar'
 
+  constructor: (namespace = Base.DEFAULT_NAMESPACE) ->
+    @setPeerNamespace namespace
+
+  setPeerNamespace: (@namespace) -> @
+
+###* Initialise a Redis backed registry ###
 class Redis extends Base
-  @DEFAULT_KEY_PREFIX: 'en-masse:'
+  ###* Connect to a Redis server on the specified host/port ###
+  constructor: (port, host, namespace, @client) ->
+    super(namespace)
 
-  ###* Initialise a Redis backed registry on the specified host/port ###
-  constructor: (port, host, @keyPrefix = Redis.DEFAULT_KEY_PREFIX, @client) ->
-    super()
-    @client ?= redis.createClient(port, host, detect_buffers: yes)
+    @client  ?= redis.createClient(port, host, detect_buffers: yes)
+    @pubsub  ?= redis.createClient(port, host)
+
+    @channels = {}
+    @pubsub.subscribe @channels.joins = "#{@namespace}#joins"
+    @pubsub.subscribe @channels.parts = "#{@namespace}#parts"
+    @pubsub.on 'message', @_consumeMessage.bind(@)
+
+  ###* It's only sensible to ensure there's a colon on the end of Redis key prefixes ###
+  setPeerNamespace: (namespace) ->
+    namespace = "#{namespace}:" if namespace.lastIndexOf(':') isnt namespace.length - 1
+    super namespace
 
   ###* Publish a client with the specified identifier to the registry ###
   publish: (identifier, options={}, callback) ->
     [callback, options] = [options, {}] if typeof options is 'function'
 
-    # TODO: write to cache, publish event
-    @client.HMSET key = @_getKeyForIdentifier(identifier), identifier, callback
+    key = @_getKeyForIdentifier(identifier)
 
-    if options and options.pexpire
-      # expire the key in n ms
-      @client.pexpire key, options.pexpire
+    @client.exists key, (err, res) =>
+      callback?(err) if err
+
+      if parseInt(res)
+        callback? null, @
+      else
+        @client.hmset key, identifier, (err, res) =>
+          callback? err if err
+
+          # we must use the regular client because apparently 'pub/sub mode' does not permit the publishing part
+          @client.publish @channels.joins, JSON.stringify(identifier)
+          callback? null, @
+
+          if options and options.pexpire
+            # expire the key in n ms
+            @client.pexpire key, options.pexpire
+    @
 
   ###* Find a host using the specified key pattern
-       Redis will take a regex pattern and run it across the key set for us
+       Redis will take a glob-like pattern and run it across the key set for us
        See http://redis.io/commands/keys
   ###
-  lookup: (nicknamePattern, callback) ->
-    @client.KEYS @_getKeyForIdentifier(nicknamePattern, yes), (err, keys) =>
+  lookup: (nicknamePattern, exclusions=[], callback) ->
+    [callback, exclusions] = [exclusions, []] if typeof exclusions is 'function'
+
+    @client.keys @_getKeyForIdentifier(nicknamePattern, yes), (err, keys) =>
       return callback?(err) if err
       keys.forEach (key) =>
-        @client.HGETALL key, (err, obj) ->
-          callback? err, obj
+        if not ~exclusions.indexOf key.substr(@namespace.length)
+          @client.hgetall key, (err, obj) ->
+            callback? err, obj
+    @
+
+  _consumeMessage: (channel, message) ->
+    switch channel
+      when @channels.joins
+        @emit 'join', JSON.parse(message)
+      when @channels.parts
+        @emit 'part', JSON.parse(message)
 
   _getKeyForIdentifier: (identifier, escapePrefix = no) ->
-    keyPrefix = if escapePrefix then RegExp.quote(@keyPrefix) else @keyPrefix
-    keyPrefix + (identifier.name or identifier)
+    namespace = if escapePrefix then RegExp.quote(@namespace) else @namespace
+    namespace + (identifier.name or identifier)
 
 module.exports.BaseRegistry  = Base
 module.exports.RedisRegistry = Redis
