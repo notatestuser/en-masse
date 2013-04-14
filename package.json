@@ -1,18 +1,22 @@
 {
-  "name": "en-masse",
-  "version": "0.0.1",
+  "name": "sidecar",
+  "description": "Get Duplex streams between apps via a Redis name server",
+  "version": "0.1.0",
+  "main": "index.js",
   "scripts": {
     "test": "vows --spec test/*.coffee"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/notatestuser/pillion-en-masse.git"
+    "url": "git://github.com/notatestuser/sidecar.git"
   },
   "keywords": [
-    "rpc",
-    "named",
-    "stream",
+    "nameserver",
+    "name server",
     "registry",
+    "rpc",
+    "stream",
+    "redis",
     "distributed"
   ],
   "engines": {
