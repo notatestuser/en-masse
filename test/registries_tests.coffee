@@ -66,12 +66,22 @@ vows
             registry.publish.bind registry, mocks.quad4, pexpire: 1000
           ], @callback
 
-        "and a each() is performed with a pattern and exclusions":
+        "and a lookup() is performed with a pattern and exclusions":
           topic: (registries) ->
-            registries[0].each 'quad*', ['quad-1', 'quad-2', 'quad-4'], @callback
+            registries[0].lookup 'quad*', [mocks.quad1.name, mocks.quad4.name], @callback
             return
 
-          "then quad-3's identifier should have been received": (identifier) ->
+          "returning quad-2 and quad-3's identifiers": (identifiers) ->
+            assert.equal identifiers.length, 2, "contains 2 identifiers"
+            assert.deepEqual identifiers, [mocks.quad2, mocks.quad3] if identifiers[0].name is 'quad-2'
+            assert.deepEqual identifiers, [mocks.quad3, mocks.quad2] if identifiers[0].name is 'quad-3'
+
+        "and an each() performed with a pattern and exclusions":
+          topic: (registries) ->
+            registries[0].each 'quad*', [mocks.quad1.name, mocks.quad2.name, mocks.quad4.name], @callback
+            return
+
+          "invokes callback with quad-3's identifier": (identifier) ->
             assert.deepEqual identifier, mocks.quad3
 
         "there should be keys in the published hash for each identifier":
@@ -89,6 +99,14 @@ vows
             "the key should no longer be present in the published hash": (registry) ->
               ns = registry.namespace
               assert.ok not registry.published[ns + mocks.quad4]?
+
+            "and an attempt to look it up":
+              topic: (registry) ->
+                registry.lookup mocks.quad4.name, @callback
+                return
+
+              "should return nothing": (names) ->
+                assert.deepEqual names, []
 
     "multiple RedisRegistries":
       topic: ->
