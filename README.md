@@ -36,14 +36,8 @@ The solution
 *For ease of understanding, this diagram depicts two sidecar clients on the network.
 It can support more.*
 
-### But what if I don't want to use Redis or TCP?
-
-Okay, the diagram can be a little deceiving, but you can really use anything you'd like.
-This thing has been designed so that those interfaces are merely *defaults*; supplying your
-own implementation is as easy as sending in another registry, interface or wrapper chain.
-
-Let's see how easy it is to get RPC with a peer identity registry in about 5 seconds using
-a Redis server running on the local machine:
+Let's see how easy might be to get RPC with peer name matching using a Redis instance
+on the local machine:
 
 ```js
 var sidecar = require('sidecar'),
@@ -65,6 +59,12 @@ rpc.to('*').provide("greet", function(name, cb) {
   cb("hi there, " + name);
 });
 ```
+
+### But what if I don't want to use Redis or TCP?
+
+Okay, the diagram can be a little deceiving, but you can really use anything you'd like.
+This thing has been designed so that those interfaces are merely *defaults*; supplying your
+own implementation is as easy as sending in another registry, interface or wrapper chain.
 
 Now let's say you'd instead like to use a SQL server as your registry:
 
