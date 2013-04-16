@@ -5,7 +5,8 @@ Get [Duplex](http://nodejs.org/api/stream.html#stream_class_stream_duplex) strea
 about DNS or hostname configuration. Uses [Redis](http://redis.io/) as a name server.
 
 * Peers are apps that have arbitrary names
-* The name server stores name to network address mappings
+* Peers belong to a namespace
+* The name server stores peer name to address/port/protocol mappings
 * Connection is transparent and happens upon demanding a stream
 * A protocol is mutually agreed upon (currently TCP only), producing a [Duplex](http://nodejs.org/api/stream.html#stream_class_stream_duplex) stream
 * Established stream is wrapped with desired indirection
