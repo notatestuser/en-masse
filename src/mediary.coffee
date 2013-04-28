@@ -10,7 +10,7 @@ captureError = (errorCb, successCb) ->
 ###* Encapsulates liason with the registry and interface ###
 class Mediary extends EventEmitter
   constructor: (@nickname, @registry, @interface) ->
-    [@wrappers, @persisted]  = [[], []]
+    [@wrappers, @persisted, @listeners]  = [[], [], {}]
 
   setPeerNamespace: (namespace) ->
     @_initDefaultsAndEvents()
@@ -46,11 +46,12 @@ class Mediary extends EventEmitter
     # get our own identifier so that we can publish it
     @interface.getHostIdentifier @nickname, captureError(callback, (err, _hostIdentifier) =>
       # publish our host in the registry
-      @registry.publish _hostIdentifier, =>
-        # persist to new hosts?
-        if options and options.persist
-          @persisted.push pair
+      @registry.publish _hostIdentifier
     )
+
+    # persist to new hosts?
+    if options and options.persist
+      @persisted.push pair
 
     pair # is a pointer to a kind of unique identifier that we may have 'persisted'
 
@@ -63,13 +64,18 @@ class Mediary extends EventEmitter
     @interface or= new TcpInterface()
     @registry  or= new RedisRegistry()
 
-    # when a client joins, we'll want to reinstate all persisted callbacks
-    @registry.on 'join', (_newIdentifier) =>
+    @listeners.join = (_newIdentifier) =>
+      # persist the persisted
       @persisted.forEach (_persisted) =>
         @registry.each _persisted[0], [@nickname], (err, _matchedIdentifier={}) =>
           if _matchedIdentifier.name is _newIdentifier.name
-            _persisted[1](err, _matchedIdentifier)
+            _persisted[1] err, _matchedIdentifier
       @emit.apply @, arguments
+
+    # when a client joins, we'll want to reinstate all persisted callbacks
+    if @listeners.join not in @registry.listeners('join')
+      @registry.on 'join', @listeners.join
+
     @
 
 module.exports = Mediary
