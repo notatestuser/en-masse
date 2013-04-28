@@ -1,5 +1,5 @@
 {
-  "name": "sidecar",
+  "name": "en-masse",
   "description": "Get Duplex streams between apps via a Redis name server",
   "version": "0.1.0",
   "main": "index.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/notatestuser/sidecar.git"
+    "url": "git://github.com/notatestuser/en-masse.git"
   },
   "keywords": [
     "nameserver",

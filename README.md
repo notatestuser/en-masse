@@ -1,5 +1,5 @@
-sidecar (WIP) [![Build Status](https://travis-ci.org/notatestuser/sidecar.png?branch=master)](https://travis-ci.org/notatestuser/sidecar)
-=============
+en-masse (WIP) [![Build Status](https://travis-ci.org/notatestuser/sidecar.png?branch=master)](https://travis-ci.org/notatestuser/sidecar)
+==============
 
 Get [Duplex](http://nodejs.org/api/stream.html#stream_class_stream_duplex) streams to named peers in your network without having to worry
 about DNS or hostname configuration. Uses [Redis](http://redis.io/) as a name server.
@@ -32,7 +32,7 @@ The solution
 ------------
 [KISS](https://en.wikipedia.org/wiki/KISS_principle)!
 
-![Diagram](http://notatestuser.github.io/sidecar/diagram.svg)
+![Diagram](http://notatestuser.github.io/en-masse/diagram.svg)
 
 *For ease of understanding, this diagram depicts two sidecar clients on the network.
 It can support more.*
