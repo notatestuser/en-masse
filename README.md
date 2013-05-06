@@ -1,4 +1,4 @@
-en-masse (WIP) [![Build Status](https://travis-ci.org/notatestuser/sidecar.png?branch=master)](https://travis-ci.org/notatestuser/sidecar)
+en-masse (WIP) [![Build Status](https://travis-ci.org/notatestuser/en-masse.png?branch=master)](https://travis-ci.org/notatestuser/en-masse)
 ==============
 
 Get [Duplex](http://nodejs.org/api/stream.html#stream_class_stream_duplex) streams to named peers in your network without having to worry
@@ -34,18 +34,18 @@ The solution
 
 ![Diagram](http://notatestuser.github.io/en-masse/diagram.svg)
 
-*For ease of understanding, this diagram depicts two sidecar clients on the network.
+*For ease of understanding, this diagram depicts two en-masse clients on the network.
 It can support more.*
 
 Let's see how easy might be to get RPC with peer name matching using a Redis instance
 on the local machine:
 
 ```js
-var sidecar = require('sidecar'),
+var masse   = require('en-masse'),
     pillion = require('pillion'),
     burro   = require('burro');
 
-var rpc = new sidecar('my-server-app');
+var rpc = new masse('my-server-app');
 
 rpc.addStreamWrapper(function(_socket) {
   return burro.wrap(_socket);
@@ -70,14 +70,14 @@ own implementation is as easy as sending in another registry, interface or wrapp
 Now let's say you'd instead like to use a SQL server as your registry:
 
 ```js
-var sidecar = require('sidecar'),
+var masse = require('en-masse'),
     ...;
 
 // obviously you'd have to implement this class, but there's already a base
 // that does some basic caching and what-not that you can extend from.
 var SQLRegistry = require('./registries/mysql');
 
-var rpc = new sidecar('my-server-app', new SQLRegistry());
+var rpc = new masse('my-server-app', new SQLRegistry());
 
 rpc.addStreamWrapper ... etc
 ```
@@ -97,10 +97,10 @@ Have you been using configuration files to target your application at a set of s
 varies depending upon which environment it's running in? Try this!
 
 ```js
-var sidecar = require('sidecar'),
+var masse = require('en-masse'),
     ...;
 
-var net = new sidecar('my-server-app');
+var net = new masse('my-server-app');
 net.setPeerNamespace(process.env.NODE_ENV || 'dev');
 
 net.to('db-server-1') // ...use your stream...
